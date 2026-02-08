@@ -1,22 +1,31 @@
+# src/models/student.py
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column
-
 
 from src.database import Base
 
 
-
 class Student(Base):
-    __tablename__="students"
+    __tablename__ = "students"
 
-    id:Mapped[int]=mapped_column(Integer,primary_key=True,index=True,autoincrement=True)
-    name:Mapped[str]=mapped_column(String(255),nullable=False)
-    age:Mapped[int]=mapped_column(Integer,nullable=False)
-    grade:Mapped[str]=mapped_column(String(255),nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,  # explicit is fine, but optional
+    )
+    name: Mapped[str] = mapped_column(
+        String(100),          # 100 is usually enough for names
+        nullable=False,
+        index=False,          # no need for extra index unless you search by name often
+    )
+    age: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    grade: Mapped[str] = mapped_column(
+        String(20),           # e.g. "A+", "B-", "Excellent", etc.
+        nullable=False,
+    )
 
-
-
-    def __repr__(self):
-        return f"<Student(id={self.id}, name={self.name}, age={self.age}, grade={self.grade})>"
-
-
+    def __repr__(self) -> str:
+        return f"<Student(id={self.id}, name={self.name!r}, age={self.age}, grade={self.grade!r})>"
