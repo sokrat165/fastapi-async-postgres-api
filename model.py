@@ -1,5 +1,5 @@
 from sqlalchemy import column, Integer, String
-from .database import Base
+from src.core.database import Base
 
 class User(Base):
     # __tablename__ is used to specify the name of the table in the database that corresponds to this model

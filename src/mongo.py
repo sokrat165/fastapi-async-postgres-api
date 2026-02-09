@@ -1,7 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import Request
 
-from src.config import settings
+from src.core.config import settings
 
 
 async def connect_to_mongo(app):
