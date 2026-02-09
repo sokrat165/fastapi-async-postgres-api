@@ -2,9 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # single DATABASE_URL used for all DB connections (SQL and Mongo as requested)
+    # PostgreSQL connection URL for SQLAlchemy
     DATABASE_URL: str
-    MONGO_URL:str
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -15,4 +14,3 @@ class Settings(BaseSettings):
 
 settings = Settings()
 print("DATABASE_URL =", settings.DATABASE_URL)
-print("MONGO_URL =", settings.MONGO_URL)

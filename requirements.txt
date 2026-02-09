@@ -5,4 +5,3 @@ sqlalchemy[asyncio]
 psycopg[binary,pool]
 pydantic-settings
 asyncpg
-motor

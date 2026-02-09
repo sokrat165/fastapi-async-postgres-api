@@ -1,8 +1,12 @@
 # src/models/student.py
 from sqlalchemy import String, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
 
 from src.database import Base
+
+if TYPE_CHECKING:
+    from src.models.item import Item
 
 
 class Student(Base):
@@ -26,6 +30,8 @@ class Student(Base):
         String(20),           # e.g. "A+", "B-", "Excellent", etc.
         nullable=False,
     )
+    # Relationship: One student can have many items
+    items: Mapped[list["Item"]] = relationship("Item", back_populates="student", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Student(id={self.id}, name={self.name!r}, age={self.age}, grade={self.grade!r})>"
