@@ -1,5 +1,5 @@
 # src/crud/__init__.py
-from .student import StudentRepository
-from .item import ItemRepository
+from .basestudent import StudentRepository
+from .baseitem import ItemRepository
 
 __all__ = ["StudentRepository", "ItemRepository"]

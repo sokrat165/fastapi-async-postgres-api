@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
-from src.database import async_session_factory
+from src.core.database import async_session_factory
 from src.schemas.student import StudentCreate, StudentUpdate, StudentOut
 from src.crud import StudentRepository   # ← we use this now
 

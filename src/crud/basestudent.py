@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.student import Student
 from src.schemas.student import StudentCreate, StudentUpdate
-from src.crud.repository import BaseRepository
+from src.crud.baserepository import BaseRepository
 
 
 class StudentRepository(BaseRepository[Student]):

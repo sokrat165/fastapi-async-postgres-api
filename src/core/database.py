@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession,create_async_engine,async_sessio
 from sqlalchemy.orm import DeclarativeBase
 #orm is object-relational mapping, it is a technique that allows you to interact with a database using object-oriented programming concepts. It provides a way to map database tables to Python classes and allows you to perform database operations using Python objects instead of writing raw SQL queries.
 
-from src.config import settings
+from src.core.config import settings
 
 #create_async_engine --> async_sessionmaker --> AsyncSession
 

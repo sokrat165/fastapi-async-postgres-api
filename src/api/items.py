@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from src.database import async_session_factory
+from src.core.database import async_session_factory
 from src.schemas.item import ItemCreate, ItemUpdate, ItemOut
-from src.crud.item import ItemRepository
+from src.crud.baseitem import ItemRepository
 
 
 router = APIRouter(prefix="/items", tags=["items"])

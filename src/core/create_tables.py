@@ -1,6 +1,6 @@
 # one-time script — save as create_tables.py and run it
 import asyncio
-from src.database import engine, Base
+from src.core.database import engine, Base
 from src.models.student import Student   # ← import so it's registered
 from src.models.item import Item          # ← import so it's registered
 
