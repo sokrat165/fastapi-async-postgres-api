@@ -5,3 +5,16 @@ sqlalchemy[asyncio]
 psycopg[binary,pool]
 pydantic-settings
 asyncpg
+passlib[bcrypt]
+python-jose[cryptography]
+ecdsa
+python-multipart
+python-dotenv
+pytest
+pytest-asyncio
+httpx
+alembic
+pytest-cov
+coverage
+pytest-mock
+pwdlib[argon2,bcrypt]
