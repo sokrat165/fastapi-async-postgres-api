@@ -18,3 +18,4 @@ pytest-cov
 coverage
 pytest-mock
 pwdlib[argon2,bcrypt]
+supabase
