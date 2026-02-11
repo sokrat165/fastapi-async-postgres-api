@@ -3,6 +3,7 @@ import asyncio
 from src.core.database import engine, Base
 from src.models.student import Student   # ← import so it's registered
 from src.models.item import Item          # ← import so it's registered
+from src.models.register import User      # ← import user model so it's registered
 
 async def init_db():
     async with engine.begin() as conn:
