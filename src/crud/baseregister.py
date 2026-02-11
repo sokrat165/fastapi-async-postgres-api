@@ -4,9 +4,8 @@ from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import pwd_context
-
 from src.models.register import User
-from src.schemas.register import UserCreate
+from src.schemas.register import UserCreate,UserUpdate
 from src.crud.baserepository import BaseRepository
 from fastapi import HTTPException, status
 
@@ -59,3 +58,20 @@ class UserRepository(BaseRepository[User]):
         if user and pwd_context.verify(password, user.password_hash):
             return user
         return None
+
+    async def update(
+        self, user_id: int, update_data: UserUpdate
+    ) -> Optional[User]:
+        values = update_data.model_dump(exclude_unset=True)
+        if "password" in values:
+            # Hash new password
+            try:
+                values["password_hash"] = pwd_context.hash(values.pop("password"))
+            except Exception:
+                from hashlib import sha256
+
+                values["password_hash"] = sha256(
+                    values.pop("password").encode("utf-8")
+                ).hexdigest()
+
+        return await super().update(user_id, values)
