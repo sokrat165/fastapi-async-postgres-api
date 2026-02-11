@@ -4,9 +4,9 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBearer
 
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-to-a-very-long-random-string-64+chars")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# SECRET_KEY = os.getenv("SECRET_KEY", "change-this-to-a-very-long-random-string-64+chars")
+# ALGORITHM = "HS256"
+# ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -17,6 +17,11 @@ http_bearer = HTTPBearer()
 class Settings(BaseSettings):
     # PostgreSQL connection URL for SQLAlchemy
     DATABASE_URL: str
+    SECRET_KEY: str | None = "change-this-to-a-very-long-random-string-64+chars"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SUPABASE_DB_URL: str
+
 
     model_config = SettingsConfigDict(
         env_file="src/.env",
@@ -27,4 +32,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 print("DATABASE_URL =", settings.DATABASE_URL)
