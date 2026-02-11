@@ -1,25 +1,8 @@
-# from fastapi import APIRouter, HTTPException, status, Depends
-# from src.core.database import async_session_factory
-# from src.schemas.register import UserCreate, UserOut
-# from src.crud.baseregister import UserRepository   
-
-
-# router = APIRouter(prefix="/register", tags=["register"])
-
-# @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-# async def register_user(user: UserCreate):
-#     """
-#     Register a new user
-#     """
-#     async with async_session_factory() as session:
-#         repo = UserRepository(session)
-#         created = await repo.create(user)
-#         return created
-# ------------------------------------------------------------------
-# 
-
-# src/routers/register.py  (or wherever your router is)
-# src/routers/register.py# src/api/register.py
+# src/api/register.py# src/api/register.py
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.schemas.register import UserCreate, UserOut,UserUpdate
+from src.crud.baseregister import UserRepository
+from src.core.database import db_factory, get_chosen_db
 from fastapi import (
     APIRouter,
     Depends,
@@ -27,30 +10,17 @@ from fastapi import (
     Query,
     status,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.register import UserCreate, UserOut
-from src.crud.baseregister import UserRepository
-from src.core.database import db_factory
 
 router = APIRouter(prefix="/register", tags=["register"])
 
 
-async def get_chosen_db(
-    db: str = Query(
-        default="local",
-        description="Target database: 'local' (PostgreSQL) or 'supabase'"
-    )
-) -> AsyncSession:
-    choice = db.lower().strip()
-    if choice not in ("local", "supabase"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid database choice. Allowed values: 'local' or 'supabase'"
-        )
-    
-    async for session in db_factory.get_session(choice):
-        yield session
+
+def get_user_repository(db: AsyncSession=Depends(get_chosen_db)) -> UserRepository:
+    return UserRepository(db)
+
+
+
 
 
 @router.post(
@@ -62,25 +32,43 @@ async def get_chosen_db(
 )
 async def register_user(
     user: UserCreate,
-    db: AsyncSession = Depends(get_chosen_db)
-):
+    repo:UserRepository = Depends(get_user_repository)):
     """
     Register a new user
 
     Query parameter:
     - db: "local" (default) or "supabase"
     """
-    repo = UserRepository(db)
-
+    
     try:
         created = await repo.create(user)
-        await db.commit()
-        await db.refresh(created)
         return created
 
     except Exception as exc:
-        await db.rollback()
+        await repo.session.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Registration failed: {str(exc)}"
+        ) from exc
+    
+async def update_user(
+    username: str,
+    user_update: UserUpdate,
+    repo: UserRepository = Depends(get_user_repository)
+):
+
+    try:
+        updated = await repo.update(username, user_update)
+        if not updated:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return updated
+
+    except Exception as exc:
+        await repo.session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Update failed: {str(exc)}"
         ) from exc
