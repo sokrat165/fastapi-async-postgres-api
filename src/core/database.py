@@ -1,43 +1,16 @@
-# from sqlalchemy.ext.asyncio import AsyncSession,create_async_engine,async_sessionmaker
-
-# from sqlalchemy.orm import DeclarativeBase
-# #orm is object-relational mapping, it is a technique that allows you to interact with a database using object-oriented programming concepts. It provides a way to map database tables to Python classes and allows you to perform database operations using Python objects instead of writing raw SQL queries.
-
-# from src.core.config import settings
-
-# #create_async_engine --> async_sessionmaker --> AsyncSession
-
-# # crate_async_engine to connect to the database
-# #check_same_thread=False is used to allow multiple threads to access the database at the same time. It is necessary when using SQLite in a multi-threaded environment, as SQLite does not allow multiple threads to access the same database file simultaneously by default.
-# engine=create_async_engine(settings.DATABASE_URL,echo=True)
-
-# #async_sessionmaker to create a session for interacting with the database
-# #expire_on_commit=False is used to prevent the session from expiring the objects after a commit. This means that the objects will still be available in the session after a commit, and you can continue to work with them without having to refresh them from the database.
-# async_session_factory=async_sessionmaker(engine,expire_on_commit=False,class_=AsyncSession)
-
-
-
-# class Base(DeclarativeBase):
-#     pass
-
 # src/core/database.py
-# src/core/database.py
-# src/core/database.py
-import os
 from typing import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import create_async_engine,async_sessionmaker, AsyncSession
+from src.core.config import settings
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from dotenv import load_dotenv
 from fastapi import Query, HTTPException, status
 
 # Load environment variables (relative path from this file)
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")
-DEFAULT_DB = os.getenv("DEFAULT_DB", "local").lower()
-
+DATABASE_URL = settings.DATABASE_URL
+SUPABASE_DB_URL = settings.SUPABASE_DB_URL
+ 
+db_list=("local", "supabase")
 if not DATABASE_URL or not SUPABASE_DB_URL:
     raise ValueError("Missing DATABASE_URL or SUPABASE_DB_URL in environment")
 
@@ -81,7 +54,7 @@ class DatabaseFactory:
 
     async def get_session(
         self,
-        db_type: str = DEFAULT_DB
+        db_type: str = 'local'
     ) -> AsyncGenerator[AsyncSession, None]:
         """Get AsyncSession for the specified database type."""
         db_type = db_type.lower()
@@ -113,10 +86,10 @@ async def get_chosen_db(
     Usage: db: AsyncSession = Depends(get_chosen_db)
     """
     choice = db.lower().strip()
-    if choice not in ("local", "supabase"):
+    if choice not in db_list:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid database choice. Allowed values: 'local' or 'supabase'"
+            detail=f"Invalid database choice. Allowed values: {db_list}"
         )
 
     async for session in db_factory.get_session(choice):
