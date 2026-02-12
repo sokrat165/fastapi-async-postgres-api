@@ -1,9 +1,9 @@
 # src/crud/repository.py
 from typing import Generic, TypeVar, Optional, List, Any
+from sqlalchemy.orm import DeclarativeBase
 
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase
 
 T = TypeVar("T", bound=DeclarativeBase)
 
@@ -18,6 +18,7 @@ class BaseRepository(Generic[T]):
         self.session = session
         self.model = model
 
+
     async def create(self, data: dict) -> T:
         instance = self.model(**data)
         self.session.add(instance)
@@ -25,11 +26,15 @@ class BaseRepository(Generic[T]):
         await self.session.refresh(instance)
         return instance
 
+
+
     async def get_by_id(self, id_value: Any) -> Optional[T]:
         result = await self.session.execute(
             select(self.model).where(self.model.id == id_value)
         )
         return result.scalar_one_or_none()
+
+
 
     async def get_all(
         self,
@@ -44,6 +49,8 @@ class BaseRepository(Generic[T]):
             .order_by(getattr(self.model, order_by_column))
         )
         return result.scalars().all()
+
+
 
     async def update(
         self,
@@ -62,6 +69,7 @@ class BaseRepository(Generic[T]):
         result = await self.session.execute(stmt)
         await self.session.commit()
         return result.scalar_one_or_none()
+
 
     async def delete(self, id_value: Any) -> Optional[T]:
         stmt = (
