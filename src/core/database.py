@@ -1,21 +1,109 @@
-from sqlalchemy.ext.asyncio import AsyncSession,create_async_engine,async_sessionmaker
+# src/core/database.py
 
-from sqlalchemy.orm import DeclarativeBase
-#orm is object-relational mapping, it is a technique that allows you to interact with a database using object-oriented programming concepts. It provides a way to map database tables to Python classes and allows you to perform database operations using Python objects instead of writing raw SQL queries.
-
+from typing import AsyncGenerator, Dict
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from fastapi import Query, HTTPException, status
 from src.core.config import settings
 
-#create_async_engine --> async_sessionmaker --> AsyncSession
 
-# crate_async_engine to connect to the database
-#check_same_thread=False is used to allow multiple threads to access the database at the same time. It is necessary when using SQLite in a multi-threaded environment, as SQLite does not allow multiple threads to access the same database file simultaneously by default.
-engine=create_async_engine(settings.DATABASE_URL,echo=True)
-
-#async_sessionmaker to create a session for interacting with the database
-#expire_on_commit=False is used to prevent the session from expiring the objects after a commit. This means that the objects will still be available in the session after a commit, and you can continue to work with them without having to refresh them from the database.
-async_session_factory=async_sessionmaker(engine,expire_on_commit=False,class_=AsyncSession)
-
-
-
+# ────────────────────────────────────────────────
+# Base class for SQLAlchemy models
+# ────────────────────────────────────────────────
 class Base(DeclarativeBase):
     pass
+
+
+# ────────────────────────────────────────────────
+# Database configuration (SCALABLE)
+# ────────────────────────────────────────────────
+DATABASE_URLS: Dict[str, str] = {
+    "local": settings.DATABASE_URL,
+    "supabase": settings.SUPABASE_DB_URL,
+    # add more here later
+    # "analytics": settings.ANALYTICS_DB_URL,
+}
+
+# validate
+missing = [k for k, v in DATABASE_URLS.items() if not v]
+if missing:
+    raise ValueError(f"Missing database URLs for: {missing}")
+
+
+# ────────────────────────────────────────────────
+# Factory
+# ────────────────────────────────────────────────
+class DatabaseFactory:
+    """Manages multiple database engines and sessionmakers."""
+
+    def __init__(self, db_urls: Dict[str, str]):
+        self.engines = {}
+        self.sessionmakers = {}
+        self._init_engines(db_urls)
+
+    def _init_engines(self, db_urls: Dict[str, str]):
+        for name, url in db_urls.items():
+
+            connect_args = {}
+            if name == "supabase":
+                connect_args = {
+                    "statement_cache_size": 0,
+                    "prepared_statement_cache_size": 0,
+                }
+
+            engine = create_async_engine(
+                url,
+                echo=False,
+                pool_pre_ping=True,
+                pool_recycle=300,
+                connect_args=connect_args,
+            )
+
+            self.engines[name] = engine
+            self.sessionmakers[name] = sessionmaker(
+                bind=engine,
+                class_=AsyncSession,
+                expire_on_commit=False,
+            )
+
+    def get_db_types(self):
+        return list(self.engines.keys())
+
+    async def get_session(self, db_type: str = "local") -> AsyncGenerator[AsyncSession, None]:
+        db_type = db_type.lower()
+
+        if db_type not in self.sessionmakers:
+            raise ValueError(f"Invalid database '{db_type}'. Allowed: {self.get_db_types()}")
+
+        SessionLocal = self.sessionmakers[db_type]
+
+        async with SessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except:
+                await session.rollback()
+                raise
+
+
+# ────────────────────────────────────────────────
+# Singleton
+# ────────────────────────────────────────────────
+db_factory = DatabaseFactory(DATABASE_URLS)
+db_list = tuple(db_factory.get_db_types())
+
+
+# ────────────────────────────────────────────────
+# FastAPI dependency
+# ────────────────────────────────────────────────
+async def get_chosen_db(
+    db: str = Query(default="local", description=f"Target DB: {db_list}")
+) -> AsyncGenerator[AsyncSession, None]:
+    if db not in db_list:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid DB. Allowed: {db_list}"
+        )
+
+    async for session in db_factory.get_session(db):
+        yield session
