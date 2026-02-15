@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas.qanda import QandACreate, QandAUpdate, QandAOut
-from src.crud.qanda import QandARepository
+from src.repositories.qanda import QandARepository
 from src.core.database import get_chosen_db
-from src.core.security import get_current_user
+from src.api.dependencies.auth import get_current_user
 
 router = APIRouter(
     prefix="/qanda",

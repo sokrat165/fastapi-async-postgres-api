@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from src.LLM_Client.cohere_client import get_co_client
-from src.core.security import get_current_user
+from src.api.dependencies.auth import get_current_user
 from src.core.database import get_chosen_db
 from src.schemas.qanda import AskAIRequest, QandACreate
-from src.crud.qanda import QandARepository
+from src.repositories.qanda import QandARepository
 
 router = APIRouter(
     prefix="/qanda",
