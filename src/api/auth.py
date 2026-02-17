@@ -10,7 +10,9 @@ from src.repositories.user_Repository import UserRepository
 from src.core.security import create_access_token
 from src.core.database import get_chosen_db
 from src.schemas.token import Token
-from src.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from src.core.config import settings
+
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="/login", tags=["login"])
 
