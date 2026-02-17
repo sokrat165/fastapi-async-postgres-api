@@ -49,3 +49,8 @@ htmlcov/
 # Supabase / local files
 uploads/
 storage/
+dependancy/
+FastApi/
+node_modules/
+ff.txt
+of -i :8000 -sTCP:LISTEN -t
