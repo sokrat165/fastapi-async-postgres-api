@@ -1,8 +1,52 @@
-__pycache__/
-*.pyc
-.env
-.venv
-venv/
+# Postgres data
 postgres_data/
+
+# IDE
 .vscode/
 .idea/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.pyc
+
+# Virtual environments
+.env
+.venv/
+venv/
+
+# Environment variables
+.env.*
+*.env
+
+# Logs
+*.log
+
+# Database files
+*.db
+*.sqlite3
+
+# MacOS
+.DS_Store
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Temporary files / swap
+*.tmp
+*.swp
+
+# Supabase / project local files
+uploads/
+storage/
+dependancy/
+FastApi/
+node_modules/
+ff.txt
