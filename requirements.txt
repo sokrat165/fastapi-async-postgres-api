@@ -19,4 +19,6 @@ coverage
 pytest-mock
 pwdlib[argon2,bcrypt]
 supabase
-bcrypt==3.2.2
+# bcrypt==3.2.2
+litellm
+supabase-py
