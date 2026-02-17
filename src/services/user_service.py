@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 
 from src.repositories.user_Repository import UserRepository
 from src.schemas.register import UserCreate, UserUpdate
-from src.core.config import pwd_context
+from src.core.config import settings
 from src.models.register import User
 
 class UserService:
@@ -17,7 +17,7 @@ class UserService:
                 detail="User with given email or username already exists"
             )
 
-        password_hash = pwd_context.hash(user_data.password)
+        password_hash = settings.pwd_context.hash(user_data.password)
         payload = user_data.model_dump()
         payload.pop("password", None)
         payload["password_hash"] = password_hash
@@ -27,7 +27,7 @@ class UserService:
     async def update_user(self, username: str, user_update: UserUpdate) -> User:
         values = user_update.model_dump(exclude_unset=True)
         if "password" in values:
-            values["password_hash"] = pwd_context.hash(values.pop("password"))
+            values["password_hash"] = settings.pwd_context.hash(values.pop("password"))
         updated = await self.repo.update_by_username(username, values)
         if not updated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

@@ -24,6 +24,9 @@
 #         if not verify_password(password, user.password_hash):
 #             return None
 #         return user
+
+
+
 # src/services/auth_service.py
 from fastapi import HTTPException, status
 from src.repositories.user_Repository import UserRepository
