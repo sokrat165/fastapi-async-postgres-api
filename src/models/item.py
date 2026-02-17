@@ -36,7 +36,6 @@ class Item(Base):
         nullable=False,
         default=0,
     )
-    # Foreign key: Item belongs to a Student
     student_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("students.id", ondelete="CASCADE"),
@@ -53,7 +52,6 @@ class Item(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
-    # Relationship: An item belongs to one Student
     student: Mapped["Student"] = relationship(back_populates="items")
 
     def __repr__(self) -> str:

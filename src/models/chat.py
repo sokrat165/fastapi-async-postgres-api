@@ -1,80 +1,68 @@
-# from sqlalchemy import String, Integer, Float, DateTime, ForeignKey
-# from sqlalchemy.orm import Mapped, mapped_column, relationship
-# from datetime import datetime
-# from src.core.database import Base
-# from src.models.register import User
-# from src.models.Messages import Message
 
-
-# class Chat(Base):
-#     __tablename__ = "chats"
-
-#     id: Mapped[int] = mapped_column(
-#         Integer,
-#         primary_key=True,
-#         autoincrement=True,
-#     )
-#     user_id: Mapped[int] = mapped_column(
-#         Integer,
-#         ForeignKey("users.id", ondelete="CASCADE"),
-#         nullable=False,
-#     )
-#     title: Mapped[str] = mapped_column(String(100), nullable=True)  # ← هنا
-
-#     timestamp: Mapped[datetime] = mapped_column(
-#         DateTime,
-#         nullable=False,
-#         default=datetime.utcnow,
-#     )
-
-#     user: Mapped["User"] = relationship(back_populates="chats")
-#     messages: Mapped[list["Message"]] = relationship(
-#         back_populates="chat",
-#         cascade="all, delete"
-#     )
-#     def __repr__(self) -> str:
-#         return f"<Chat(id={self.id}, user_id={self.user_id}, message={self.message!r}, timestamp={self.timestamp})>"
-
-from sqlalchemy import String, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations  
+import uuid
 from datetime import datetime
+from datetime import datetime  
+from sqlalchemy import String, ForeignKey, DateTime, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import Base
 from src.models.register import User
+from sqlalchemy import UUID
+
 
 class Chat(Base):
+
+
     __tablename__ = "chats"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
+
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default=uuid.uuid4,
+        nullable=False,
+        index=True,
     )
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
-    title: Mapped[str] = mapped_column(String(100), nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime,
+
+    title: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+        default=None,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),   # ← best: let DB set it
         nullable=False,
-        default=datetime.utcnow,
     )
 
-    user: Mapped["User"] = relationship(back_populates="chats")
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=True,
+    )
 
-    # Use string reference — no need to import Message
+    user: Mapped[User] = relationship(back_populates="chats")
+    
     messages: Mapped[list["Message"]] = relationship(
-        "Message",                     # ← string = class name
+        "Message",
         back_populates="chat",
-        cascade="all, delete-orphan",  # recommended over "all, delete"
-        passive_deletes=True           # helps with ON DELETE CASCADE
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="Message.created_at.asc()",
     )
 
     def __repr__(self) -> str:
         return (
-        f"<Chat(id={self.id}, "
-        f"user_id={self.user_id}, "
-        f"title={self.title!r}, "
-        f"timestamp={self.timestamp})>"
-    )
+            f"<Chat(id={self.id!r}, user_id={self.user_id!r}, "
+            f"title={self.title!r}, created_at={self.created_at})>"
+        )

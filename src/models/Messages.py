@@ -1,91 +1,60 @@
-# # src/models/Messages.py
-# from sqlalchemy import String, Integer, Float, DateTime, ForeignKey
-# from sqlalchemy.orm import Mapped, mapped_column, relationship
-# from datetime import datetime
-# from src.models.chat import Chat
-# from src.core.database import Base
-# from src.models.register import User
-
-
-# class Message(Base):
-#     __tablename__ = "messages"
-
-#     id: Mapped[int] = mapped_column(
-#         Integer,
-#         primary_key=True,
-#         autoincrement=True,
-#     )
-#     chat_id: Mapped[int] = mapped_column(
-#         Integer,
-#         ForeignKey("chats.id", ondelete="CASCADE"),
-#         nullable=False,
-#     )
-#     sender: Mapped[str] = mapped_column(
-#         String(50),
-#         nullable=False,
-#     )
-#     content: Mapped[str] = mapped_column(
-#         String(1000),
-#         nullable=False,
-#     )
-#     created_at: Mapped[datetime] = mapped_column(
-#         DateTime,
-#         nullable=False,
-#         default=datetime.utcnow,
-#     )
-
-
-#     chat: Mapped["Chat"] = relationship(back_populates="messages")
-
-#     def __repr__(self) -> str:
-#         return f"<Message(id={self.id}, chat_id={self.chat_id}, sender={self.sender!r}, timestamp={self.timestamp})>"
-
 # src/models/Messages.py
-# src/models/Messages.py
-# 
-
-from sqlalchemy import String, Integer, DateTime, ForeignKey, func
+from __future__ import annotations
+from litellm import Chat
+from datetime import datetime  
+from sqlalchemy import String, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.models.chat import Chat
 from src.core.database import Base
 import datetime
+import uuid
+from sqlalchemy import UUID
+
+
 
 class Message(Base):
     __tablename__ = "messages"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
-    chat_id: Mapped[int] = mapped_column(
-        Integer,
+
+    chat_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("chats.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    role: Mapped[str] = mapped_column(String(50), nullable=False)
-    content: Mapped[str] = mapped_column(String(1000), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+
+    role: Mapped[str] = mapped_column(
+        String(50),
         nullable=False,
-        server_default=func.now(),   # better than default=datetime.utcnow
     )
 
-    # Use string reference — no need to import Chat
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    updated_at: Mapped[datetime ] = mapped_column(  # ← now correct (datetime is the class)
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=True,
+    )
+
     chat: Mapped["Chat"] = relationship(
-        "Chat",                        # ← string = class name
         back_populates="messages"
     )
 
     def __repr__(self) -> str:
-    # Check if relationship was already loaded (without triggering query)
-     loaded = "messages" in self.__dict__
-     count = len(self.__dict__["messages"]) if loaded else "lazy"
-     
-     return (
-         f"<Chat(id={self.id}, "
-         f"user_id={self.user_id}, "
-         f"title={self.title!r}, "
-         f"messages={count}, "
-         f"timestamp={self.timestamp})>"
-     )
+        return f"<Message(id={self.id!r}, role={self.role}, chat_id={self.chat_id!r})>"

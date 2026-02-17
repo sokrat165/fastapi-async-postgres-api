@@ -22,7 +22,7 @@ class QandA(Base):
         nullable=False,
     )
     timestamp: Mapped[datetime] = mapped_column(
-    DateTime(timezone=True),   # ← add timezone=True        nullable=False,
+    DateTime(timezone=True),   
         default=lambda: datetime.now(timezone.utc),
     )
     user_id: Mapped[int] = mapped_column(

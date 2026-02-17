@@ -1,4 +1,5 @@
 # src/models/student.py
+from __future__ import annotations 
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
@@ -15,22 +16,21 @@ class Student(Base):
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        autoincrement=True,  # explicit is fine, but optional
+        autoincrement=True, 
     )
     name: Mapped[str] = mapped_column(
-        String(100),          # 100 is usually enough for names
+        String(100),        
         nullable=False,
-        index=False,          # no need for extra index unless you search by name often
+        index=False,          
     )
     age: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
     grade: Mapped[str] = mapped_column(
-        String(20),           # e.g. "A+", "B-", "Excellent", etc.
+        String(20),           
         nullable=False,
     )
-    # Relationship: One student can have many items
     items: Mapped[list["Item"]] = relationship("Item", back_populates="student", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
